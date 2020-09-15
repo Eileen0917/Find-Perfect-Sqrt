@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "o2GXOLgrgsSklWiYclHRxWk+Oa52Ym5hS4JNhlV60+KiTMe8Ey98Y6YDDqtpympUNG7E74Hk6lHagmkZtYrH6A==",
+  "success": true,
+  "projectFilePath": "/Users/eileenkuo/F#/project1/project1.fsproj",
+  "expectedPackageFiles": [
+    "/Users/eileenkuo/.nuget/packages/fsharp.core/4.7.2/fsharp.core.4.7.2.nupkg.sha512"
+  ],
+  "logs": []
+}
