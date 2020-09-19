@@ -28,27 +28,22 @@ let parent =
     spawnOpt system "parent" 
         <| fun parentMailbox ->
             // define child actor
-            let child = 
+            let rec child = 
                 spawn parentMailbox "child" <| fun childMailbox ->
-                    childMailbox.Defer (fun () -> printfn "Child stopping")
-                    printfn "Child started"
                     let rec childLoop() = 
                         actor {
-                            let! ProcessJob(x,y) = childMailbox.Receive ()
+                            let! ProcessJob(s,e) = childMailbox.Receive ()
                             
-                            // change i from 1 .. x to use parent actor to call
-                            for i in 1 .. x do
-                                let mutable sum1 = int64 0
-                                for j in i .. (i+y-1) do
-                                    let a = int64 (j * j)
-                                    sum1 <- sum1 + a
-                                    
-                                let right = int64 (sqrt(double sum1) + 0.5)
-                                if ((right * right) = sum1) then 
-                                    printfn "ans: %A, right: %A, sum1: %A" i right sum1 
-                                    // TODO: and then stop but not found correct way yet
-                                    // Context.Stop(child);
-                            
+                            let mutable sum1 = int64 0
+                            for j in s .. e do
+                                let a = int64 (j * j)
+                                sum1 <- sum1 + a
+                                
+                            let right = int64 (sqrt(double sum1) + 0.5)
+                            if ((right * right) = sum1) then 
+                                printfn "ans: %A" s
+                                
+                            childMailbox.Sender() <! "finished"
                             return! childLoop()
                         }
                     childLoop()
@@ -56,7 +51,11 @@ let parent =
             let rec parentLoop() =
                 actor {
                     let! ProcessJob(x,y) = parentMailbox.Receive()
-                    child.Forward(ProcessJob(x,y))  // forward all messages through
+                    for i in 1 .. x do
+                        let s = i
+                        let e = i + y - 1
+                        child.Forward(ProcessJob(s,e))  // forward all messages through
+                    
                     return! parentLoop()
                 }
             parentLoop()
@@ -69,16 +68,10 @@ let parent =
                 | _ -> SupervisorStrategy.DefaultDecider.Decide(e)))  ]
 
 async {
-    let! response = parent <? ProcessJob(3, 2)
+    let args = System.Environment.GetCommandLineArgs()
+    let k = int args.[3]
+    let n = int args.[4]
+    let! response = parent <? ProcessJob(k,n)
     printfn "%s" response
-    // after this one child should crash
-    // parent <! Crash
-    System.Threading.Thread.Sleep 200
-    
-    // // actor should be restarted
-    // let! response = parent <? Echo "hello world2"
-    // printfn "%s" response
 } |> Async.RunSynchronously
 
-
-// TODO: get args from command line
