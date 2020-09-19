@@ -18,6 +18,7 @@
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <PkgFSharp_Core Condition=" '$(PkgFSharp_Core)' == '' ">/Users/eileenkuo/.nuget/packages/fsharp.core/4.7.2</PkgFSharp_Core>
     <PkgAkka Condition=" '$(PkgAkka)' == '' ">/Users/eileenkuo/.nuget/packages/akka/1.4.10</PkgAkka>
+    <PkgAkka_TestKit Condition=" '$(PkgAkka_TestKit)' == '' ">/Users/eileenkuo/.nuget/packages/akka.testkit/1.4.10</PkgAkka_TestKit>
     <PkgAkka_FSharp Condition=" '$(PkgAkka_FSharp)' == '' ">/Users/eileenkuo/.nuget/packages/akka.fsharp/1.4.10</PkgAkka_FSharp>
   </PropertyGroup>
 </Project>

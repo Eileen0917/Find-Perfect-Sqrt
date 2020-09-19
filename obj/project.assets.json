@@ -1427,7 +1427,7 @@
     ".NETCoreApp,Version=v3.1": [
       "Akka >= 1.4.10",
       "Akka.FSharp >= 1.4.10",
-      "Akka.TestKit >= *",
+      "Akka.TestKit >= 1.4.10",
       "FSharp.Core >= 4.7.2"
     ]
   },
@@ -1473,7 +1473,8 @@
           },
           "Akka.TestKit": {
             "target": "Package",
-            "version": "[*, )"
+            "version": "[1.4.10, )",
+            "generatePathProperty": true
           },
           "FSharp.Core": {
             "target": "Package",

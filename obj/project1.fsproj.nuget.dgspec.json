@@ -43,7 +43,8 @@
             },
             "Akka.TestKit": {
               "target": "Package",
-              "version": "[*, )"
+              "version": "[1.4.10, )",
+              "generatePathProperty": true
             },
             "FSharp.Core": {
               "target": "Package",
