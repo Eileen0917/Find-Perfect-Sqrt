@@ -19,8 +19,9 @@ open Akka.TestKit
 type CustomException() =
     inherit Exception()
 
-
 type ProcessorMessage = ProcessJob of int * int
+
+let mutable count = 0
 
 let system = System.create "system" (Configuration.defaultConfig())
 // create parent actor to watch over jobs delegated to it's child
@@ -43,7 +44,8 @@ let parent =
                             if ((right * right) = sum1) then 
                                 printfn "ans: %A" s
                                 
-                            childMailbox.Sender() <! "finished"
+                            count <- count + 1
+                            // childMailbox.Sender() <! "FINISHED"
                             return! childLoop()
                         }
                     childLoop()
@@ -56,6 +58,8 @@ let parent =
                         let e = i + y - 1
                         child.Forward(ProcessJob(s,e))  // forward all messages through
                     
+                    if count = x then 
+                        parentMailbox.Sender() <! "DONE"
                     return! parentLoop()
                 }
             parentLoop()
