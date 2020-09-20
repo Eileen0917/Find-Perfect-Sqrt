@@ -45,7 +45,7 @@ let parent =
                                 printfn "ans: %A" s
                                 
                             count <- count + 1
-                            // childMailbox.Sender() <! "FINISHED"
+                            childMailbox.Sender() <! ""
                             return! childLoop()
                         }
                     childLoop()
@@ -79,3 +79,4 @@ async {
     printfn "%s" response
 } |> Async.RunSynchronously
 
+system.Terminate()

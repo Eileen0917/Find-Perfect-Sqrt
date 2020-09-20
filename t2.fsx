@@ -1,8 +1,6 @@
-// ActorSayHello.fsx
 #time "on"
 #r "nuget: Akka.FSharp" 
 #r "nuget: Akka.TestKit" 
-// #load "Bootstrap.fsx"
 
 open System
 open Akka.Actor
@@ -10,17 +8,13 @@ open Akka.Configuration
 open Akka.FSharp
 open Akka.TestKit
 
-type CustomException() =
-    inherit Exception()
-
 type ProcessorMessage = ProcessJob of int * int
 type Message = 
     | START of int * int
     | DONE
 
-
-
 let system = System.create "system" (Configuration.defaultConfig())
+// let system = ActorSystem.Create("FSharp")
 
 let worker = 
     spawn system "worker"
@@ -57,25 +51,29 @@ let boss =
                         let e = i + y - 1
                         worker <! ProcessJob(s,e)
                         count <- count + 1
-                | DONE -> 
+                    return! bossLoop()   
                     
+                | DONE -> 
                     count <- count - 1
                     if count = 0 then 
-                        printfn "need a way to exit"
-                        // bossMailbox.Sender <! "FINISH"
-                
-                return! bossLoop()
+                        printfn "DONE"
+                        // bossMailbox.Sender() <! "FF"
+                    else
+                        return! bossLoop()   
+                  
             }
+
         bossLoop()
 
 
 
 async {
     let args = System.Environment.GetCommandLineArgs()
-    let k = int args.[3]
-    let n = int args.[4]
-    let! response = boss <? START (k, n)
-    // boss <! DONE
-    printfn "%s" response
+    let n = int args.[3]
+    let k = int args.[4]
+    boss <! START (n, k)
+    // let! response = boss <? START (n, k)
+    // printfn "%s" response
 } |> Async.RunSynchronously
 
+system.Terminate()
