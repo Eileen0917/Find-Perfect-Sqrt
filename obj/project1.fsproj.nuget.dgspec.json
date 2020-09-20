@@ -31,6 +31,21 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "Akka": {
+              "target": "Package",
+              "version": "[1.4.10, )",
+              "generatePathProperty": true
+            },
+            "Akka.FSharp": {
+              "target": "Package",
+              "version": "[1.4.10, )",
+              "generatePathProperty": true
+            },
+            "Akka.TestKit": {
+              "target": "Package",
+              "version": "[1.4.10, )",
+              "generatePathProperty": true
+            },
             "FSharp.Core": {
               "target": "Package",
               "version": "[4.7.2, )",
