@@ -14,27 +14,25 @@ type Message =
     | DONE
 
 let system = System.create "system" (Configuration.defaultConfig())
+// let system = ActorSystem.Create("FSharp")
 
-let sqrtOf x = x * x
-let isSqrt (x: int64) (y: int64) = x * x = y
-
-let worker = 
-    spawn system "worker"
-    <| fun childMailbox ->
-        let rec childLoop() = 
-            actor {
-                let! ProcessJob(s,e) = childMailbox.Receive ()
-                
-                let sum1 = int64 (List.sumBy sqrtOf [s .. e])    
-                let right = int64 (sqrt(double sum1) + 0.5)
-
-                if isSqrt right sum1 then
-                    printfn "ans: %A" s
-                    
-                childMailbox.Sender() <! DONE
-                return! childLoop()
-            }
-        childLoop()
+let worker (childMailbox: Actor<_>) = 
+    let rec childLoop() = actor {
+        let! ProcessJob(s,e) = childMailbox.Receive ()
+        
+        let mutable sum1 = int64 0
+        for j in s .. e do
+            let a = int64 (j * j)
+            sum1 <- sum1 + a
+            
+        let right = int64 (sqrt(double sum1) + 0.5)
+        if ((right * right) = sum1) then 
+            printfn "ans: %A" s
+            
+        childMailbox.Sender() <! DONE
+        return! childLoop()
+    }
+    childLoop()
 
 let boss = 
     spawn system "boss" 
@@ -48,8 +46,12 @@ let boss =
                     for i in 1 .. x do
                         let s = i
                         let e = i + y - 1
-                        worker <! ProcessJob(s,e)
-                        count <- count + 1
+                        let worker1 = spawn system "worker"
+                        let worker2 = spawn system "worker"
+                        worker1 <! ProcessJob(s,e)
+                        worker2 <! ProcessJob(s+1,e+1)
+                        count <- count + 2
+                    
                     return! bossLoop()   
                     
                 | DONE -> 
@@ -59,6 +61,7 @@ let boss =
                         // bossMailbox.Sender() <! "FF"
                     else
                         return! bossLoop()   
+                  
             }
 
         bossLoop()
@@ -69,9 +72,16 @@ async {
     let args = System.Environment.GetCommandLineArgs()
     let n = int args.[3]
     let k = int args.[4]
-    boss <! START (n, k)
-    // let! response = boss <? START (n, k)
-    // printfn "%s" response
+    // boss <! START (n, k)
+    let! response = boss <? START (n, k)
+    printfn "%s" response
 } |> Async.RunSynchronously
 
+let args = System.Environment.GetCommandLineArgs()
+let n = int args.[3]
+let k = int args.[4]
+
+
 system.Terminate()
+
+
