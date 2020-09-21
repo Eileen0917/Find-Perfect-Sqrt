@@ -8,7 +8,7 @@ open Akka.Configuration
 open Akka.FSharp
 open Akka.TestKit
 
-type ProcessorMessage = ProcessJob of int * int
+type ProcessorMessage = ProcessJob of int64 * int64
 type Message = 
     | START of int * int
     | DONE
@@ -24,12 +24,11 @@ let worker =
         let rec childLoop() = 
             actor {
                 let! ProcessJob(s,e) = childMailbox.Receive ()
-                
                 let sum1 = int64 (List.sumBy sqrtOf [s .. e])    
                 let right = int64 (sqrt(double sum1) + 0.5)
 
                 if isSqrt right sum1 then
-                    printfn "ans: %A" s
+                    printfn "ans: %u" s
                     
                 childMailbox.Sender() <! DONE
                 return! childLoop()
@@ -43,26 +42,38 @@ let boss =
         let rec bossLoop() =
             actor {
                 let! (msg: Message) = bossMailbox.Receive()
+                let sender = bossMailbox.Sender()
                 match msg with
                 | START (x, y) ->
                     for i in 1 .. x do
-                        let s = i
-                        let e = i + y - 1
+                        let s = int64 i
+                        let e = int64 (i + y - 1)
                         worker <! ProcessJob(s,e)
                         count <- count + 1
-                    return! bossLoop()   
                     
                 | DONE -> 
                     count <- count - 1
                     if count = 0 then 
                         printfn "DONE"
-                        // bossMailbox.Sender() <! "FF"
-                    else
-                        return! bossLoop()   
+                        // sender <! "FINISH" 
+                
+                return! bossLoop()
             }
 
         bossLoop()
 
+
+// let main() = 
+//     let args = System.Environment.GetCommandLineArgs()
+//     let n = int args.[3]
+//     let k = int args.[4]
+//     boss <! START (n, k)
+//     // let! response = boss <? START (n, k)
+//     // printfn "%s" response
+
+//     0
+
+// main()
 
 
 async {
@@ -71,7 +82,26 @@ async {
     let k = int args.[4]
     boss <! START (n, k)
     // let! response = boss <? START (n, k)
-    // printfn "%s" response
 } |> Async.RunSynchronously
+
+
+
+
+// let task = (boss <? START (n, k))
+// let timeout = 4000
+// Async.RunSynchronously(task, timeout) |> ignore
+
+
+// for timeout in [10; 100; 250; 2500] do
+//     try
+//         let args = System.Environment.GetCommandLineArgs()
+//         let n = int args.[3]
+//         let k = int args.[4]
+//         let task = (boss <? START (n, k))
+        
+//         Async.RunSynchronously (task, timeout)
+
+//     with :? TimeoutException ->
+//         printfn "ask: timeout!"
 
 system.Terminate()
