@@ -1,4 +1,3 @@
-#time "on"
 #r "nuget: Akka.FSharp" 
 #r "nuget: Akka.TestKit" 
 
@@ -55,53 +54,23 @@ let boss =
                     count <- count - 1
                     if count = 0 then 
                         printfn "DONE"
-                        // sender <! "FINISH" 
+                        Environment.Exit 1
                 
                 return! bossLoop()
             }
-
         bossLoop()
 
-
-// let main() = 
-//     let args = System.Environment.GetCommandLineArgs()
-//     let n = int args.[3]
-//     let k = int args.[4]
-//     boss <! START (n, k)
-//     // let! response = boss <? START (n, k)
-//     // printfn "%s" response
-
-//     0
-
-// main()
-
-
-async {
+let main() =
     let args = System.Environment.GetCommandLineArgs()
     let n = int args.[3]
     let k = int args.[4]
-    boss <! START (n, k)
-    // let! response = boss <? START (n, k)
-} |> Async.RunSynchronously
+    for timeout in [1000000] do
+        try
+            let task = (boss <? START (n, k))
+            Async.RunSynchronously (task, timeout)
 
+        with :? TimeoutException ->
+            printfn "ask: timeout!"
+    0
 
-
-
-// let task = (boss <? START (n, k))
-// let timeout = 4000
-// Async.RunSynchronously(task, timeout) |> ignore
-
-
-// for timeout in [10; 100; 250; 2500] do
-//     try
-//         let args = System.Environment.GetCommandLineArgs()
-//         let n = int args.[3]
-//         let k = int args.[4]
-//         let task = (boss <? START (n, k))
-        
-//         Async.RunSynchronously (task, timeout)
-
-//     with :? TimeoutException ->
-//         printfn "ask: timeout!"
-
-system.Terminate()
+main()
